@@ -112,7 +112,7 @@ try {
     chrome=Read-ChromeArtifacts
     edge=Read-EdgeArtifacts
     firefox=Read-FirefoxArtifacts
-    copilot_soar = $true
+    copilot_action = $true
   }
   $results|ConvertTo-Json -Compress|Out-File -FilePath $ARLog -Append -Encoding ascii -Width 2000
   Write-Log "JSON appended to $ARLog" 'INFO'
@@ -124,10 +124,11 @@ try {
     action='collect_browser_artifacts'
     status='error'
     error=$_.Exception.Message
-    copilot_soar = $true
+    copilot_action = $true
   }
   $errorObj|ConvertTo-Json -Compress|Out-File -FilePath $ARLog -Append -Encoding ascii -Width 2000
 } finally {
   $dur=[int]((Get-Date)-$runStart).TotalSeconds
   Write-Log "=== SCRIPT END : duration ${dur}s ==="
 }
+
