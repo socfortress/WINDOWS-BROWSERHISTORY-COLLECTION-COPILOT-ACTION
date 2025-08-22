@@ -1,0 +1,37 @@
+{
+  "active_response_name": "WINDOWS-BROWSERHISTORY-COLLECTION-ACTIVERESPONSE",
+  "description": "Collects browser history, bookmarks, downloads, and cookies from Google Chrome, Microsoft Edge, and Mozilla Firefox on Windows endpoints. Outputs structured NDJSON for SOC automation.",
+  "technology": "Windows",
+  "icon": "windows",
+  "script_parameters": [
+    {
+      "name": "LogPath",
+      "type": "string",
+      "required": false,
+      "description": "Path to the rotating human-readable script log.",
+      "default": "%TEMP%/BrowserHistory-script.log"
+    },
+    {
+      "name": "ARLog",
+      "type": "string",
+      "required": false,
+      "description": "Path where the active response JSON result will be stored. Uses overwrite-safe NDJSON logging.",
+      "default": "C:\\Program Files (x86)\\ossec-agent\\active-response\\active-responses.log"
+    }
+  ],
+  "artifacts_collected": [
+    "Chrome history, bookmarks, downloads, and cookies",
+    "Edge history, bookmarks, downloads, and cookies",
+    "Firefox history, downloads, and cookies"
+  ],
+  "dependencies": [
+    {
+      "name": "PSSQLite",
+      "description": "Required PowerShell module to query browser SQLite databases. Automatically installs if missing."
+    }
+  ],
+  "repo_url": "https://github.com/socfortress/WINDOWS-BROWSERHISTORY-COLLECTION-ACTIVERESPONSE",
+  "script_name": "Browser-history-and-acrtifacts-collection.ps1",
+  "version": "1.0.0",
+  "last_updated": "2025-08-22T00:00:00Z"
+}
