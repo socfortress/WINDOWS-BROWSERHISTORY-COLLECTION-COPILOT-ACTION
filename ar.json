@@ -1,5 +1,5 @@
 {
-  "active_response_name": "WINDOWS-BROWSERHISTORY-COLLECTION-ACTIVERESPONSE",
+  "copilot_action_name": "WINDOWS-BROWSERHISTORY-COLLECTION-ACTIVERESPONSE",
   "description": "Collects browser history, bookmarks, downloads, and cookies from Google Chrome, Microsoft Edge, and Mozilla Firefox on Windows endpoints. Outputs structured NDJSON for SOC automation.",
   "technology": "Windows",
   "icon": "windows",
