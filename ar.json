@@ -30,7 +30,7 @@
       "description": "Required PowerShell module to query browser SQLite databases. Automatically installs if missing."
     }
   ],
-  "repo_url": "https://github.com/socfortress/WINDOWS-BROWSERHISTORY-COLLECTION-ACTIVERESPONSE",
+  "repo_url": "https://raw.githubusercontent.com/socfortress/WINDOWS-BROWSERHISTORY-COLLECTION-COPILOT-ACTION/refs/heads/main/",
   "script_name": "Browser-history-and-acrtifacts-collection.ps1",
   "version": "1.0.0",
   "last_updated": "2025-08-22T00:00:00Z"
