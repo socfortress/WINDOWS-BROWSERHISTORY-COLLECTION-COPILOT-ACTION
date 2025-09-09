@@ -1,37 +1,19 @@
 {
   "copilot_action_name": "WINDOWS-BROWSERHISTORY-COLLECTION-COPILOT-ACTION",
-  "description": "Collects browser history, bookmarks, downloads, and cookies from Google Chrome, Microsoft Edge, and Mozilla Firefox on Windows endpoints. Outputs structured NDJSON for SOC automation.",
+  "description": "Collects browser history, downloads, cookies, and bookmarks from Chrome, Edge, and Firefox. Safely queries SQLite copies using PSSQLite and emits NDJSON with a verification record, per-artifact entries, and a run summary. Supports overriding LookbackHours via Arg1 (default: 24 hours).",
   "technology": "Windows",
   "icon": "windows",
   "script_parameters": [
     {
-      "name": "LogPath",
-      "type": "string",
+      "name": "LookbackHours",
+      "type": "integer",
       "required": false,
-      "description": "Path to the rotating human-readable script log.",
-      "default": "%TEMP%/BrowserHistory-script.log"
-    },
-    {
-      "name": "ARLog",
-      "type": "string",
-      "required": false,
-      "description": "Path where the active response JSON result will be stored. Uses overwrite-safe NDJSON logging.",
-      "default": "C:\\Program Files (x86)\\ossec-agent\\active-response\\active-responses.log"
+      "description": "Number of hours to look back when collecting browser history and artifacts. Default is 24 hours.",
+      "arg_position": "1"
     }
   ],
-  "artifacts_collected": [
-    "Chrome history, bookmarks, downloads, and cookies",
-    "Edge history, bookmarks, downloads, and cookies",
-    "Firefox history, downloads, and cookies"
-  ],
-  "dependencies": [
-    {
-      "name": "PSSQLite",
-      "description": "Required PowerShell module to query browser SQLite databases. Automatically installs if missing."
-    }
-  ],
-  "repo_url": "https://raw.githubusercontent.com/socfortress/WINDOWS-BROWSERHISTORY-COLLECTION-COPILOT-ACTION/refs/heads/main",
-  "script_name": "Browser-history-and-acrtifacts-collection.ps1",
+  "repo_url": "https://raw.githubusercontent.com/socfortress/WINDOWS-BROWSERHISTORY-COLLECTION-COPILOT-ACTION/refs/heads/main/Browser-History-Collection.ps1",
+  "script_name": "Browser-History-Collection.ps1",
   "version": "1.0.0",
-  "last_updated": "2025-08-22T00:00:00Z"
+  "last_updated": "2025-09-09T00:00:00Z"
 }
