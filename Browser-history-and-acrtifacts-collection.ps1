@@ -58,13 +58,99 @@ function Write-NDJSONLines {
 
 function Ensure-SqliteModule {
   if(-not(Get-Module -ListAvailable -Name PSSQLite)){
-    Write-Log "PSSQLite module not found. Installing..." 'INFO'
-    Install-PackageProvider -Name NuGet -Force -Scope CurrentUser | Out-Null
-    Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-    Install-Module -Name PSSQLite -Scope CurrentUser -Force -ErrorAction Stop
-    Write-Log "PSSQLite installed successfully." 'INFO'
+    Write-Log "PSSQLite module not found. Installing to temp location..." 'INFO'
+    
+    try {
+        # Use a unique temp path to avoid conflicts
+        $uniqueId = [guid]::NewGuid().ToString('N').Substring(0,8)
+        $tempModPath = Join-Path $env:TEMP "PSModules_$uniqueId"
+        if (-not (Test-Path $tempModPath)) { 
+            New-Item -Path $tempModPath -ItemType Directory -Force | Out-Null 
+        }
+        
+        # Download the module package directly
+        $packageUrl = "https://www.powershellgallery.com/api/v2/package/PSSQLite"
+        $zipPath = Join-Path $env:TEMP "PSSQLite_$uniqueId.zip"
+        
+        Write-Log "Downloading PSSQLite..." 'INFO'
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-WebRequest -Uri $packageUrl -OutFile $zipPath -UseBasicParsing -ErrorAction Stop
+        
+        # Extract
+        $extractPath = Join-Path $tempModPath "PSSQLite"
+        
+        # Clean up any existing extraction
+        if (Test-Path $extractPath) { 
+            try {
+                Remove-Item $extractPath -Recurse -Force -ErrorAction Stop
+            } catch {
+                Write-Log "Warning: Could not clean existing module path: $($_.Exception.Message)" 'WARN'
+                # Try alternative path
+                $extractPath = Join-Path $tempModPath "PSSQLite_$uniqueId"
+            }
+        }
+        
+        Write-Log "Extracting to: $extractPath" 'INFO'
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $extractPath)
+        
+        # Find the actual module directory (may be nested)
+        $psd1File = Get-ChildItem -Path $extractPath -Filter "PSSQLite.psd1" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($psd1File) {
+            $moduleRoot = $psd1File.DirectoryName
+            Write-Log "Found module at: $moduleRoot" 'INFO'
+        } else {
+            $moduleRoot = $extractPath
+        }
+        
+        # Import
+        Import-Module $moduleRoot -Force -ErrorAction Stop
+        Write-Log "PSSQLite loaded successfully" 'INFO'
+        
+        # Cleanup zip only (keep extracted module for the session)
+        try { Remove-Item $zipPath -Force -ErrorAction SilentlyContinue } catch {}
+        
+    } catch {
+        Write-Log "Failed to install PSSQLite: $($_.Exception.Message)" 'ERROR'
+        throw "Unable to install or load PSSQLite module"
+    }
+  } else {
+    Import-Module PSSQLite -Force
   }
-  Import-Module PSSQLite -Force
+}
+
+function Query-Sqlite {
+  param([string]$DbPath,[string]$Query)
+  if(-not(Test-Path $DbPath)){ return @() }
+  
+  $temp=Join-Path $env:TEMP ([IO.Path]::GetFileName($DbPath) + '.' + [guid]::NewGuid().ToString('N') + '.sqlite')
+  if(-not (Copy-LockedFile -Source $DbPath -Dest $temp)){
+    Write-Log ("Query-Sqlite skip (locked) {0}" -f $DbPath) 'WARN'
+    return @()
+  }
+  
+  try {
+    if ($script:UseSQLiteDirect) {
+      # Direct SQLite query without PSSQLite module
+      $conn = New-Object System.Data.SQLite.SQLiteConnection("Data Source=$temp;Version=3;Read Only=True;")
+      $conn.Open()
+      $cmd = $conn.CreateCommand()
+      $cmd.CommandText = $Query
+      $adapter = New-Object System.Data.SQLite.SQLiteDataAdapter($cmd)
+      $dataset = New-Object System.Data.DataSet
+      [void]$adapter.Fill($dataset)
+      $conn.Close()
+      return $dataset.Tables[0].Rows
+    } else {
+      # Use PSSQLite module
+      Invoke-SqliteQuery -DataSource $temp -Query $Query
+    }
+  } catch {
+    Write-Log ("Query-Sqlite failed {0}: {1}" -f $DbPath,$_.Exception.Message) 'WARN'
+    @()
+  } finally { 
+    try { Remove-Item $temp -Force -ErrorAction SilentlyContinue } catch {}
+  }
 }
 
 function Copy-LockedFile {
